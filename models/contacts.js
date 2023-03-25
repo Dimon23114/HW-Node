@@ -1,16 +1,8 @@
 const fs = require("fs/promises");
 const path = require("path");
 const uuid = require("uuid").v4;
-const joi = require("joi");
 
-const schema = joi.object({
-  name: joi.string().min(2).required(),
-  email: joi
-    .string()
-    .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
-    .required(),
-  phone: joi.string().required(),
-});
+const schema = require("../utils/validation");
 
 const contactsPath = path.resolve(__dirname, "contacts.json");
 
@@ -54,9 +46,8 @@ const getContactById = async (req, res, next) => {
 const addContact = async (req, res, next) => {
   try {
     const { name, email, phone } = req.body;
-    const validation = schema.validate(req.body);
-
-    if (validation.error) {
+    const {error}= schema.validate(req.body);
+    if (error) {
       return res.status(400).json({
         msg: "missing required name field",
       });
@@ -101,15 +92,7 @@ const updateContact = async (req, res, next) => {
     const contacts = JSON.parse(await fs.readFile(contactsPath, "utf-8"));
     const contact = contacts.find((item) => item.id === id);
 
-    if (name) {
-      contact.name = name;
-    }
-    if (email) {
-      contact.email = email;
-    }
-    if (phone) {
-      contact.phone = phone;
-    }
+    contact.name = name || contact.name
 
     const contactIdx = contacts.findIndex((item) => item.id === id);
     contacts[contactIdx] = contact;
