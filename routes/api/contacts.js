@@ -7,18 +7,20 @@ const {
   getContactById,
   removeContact,
   addContact,
+  favoriteContact,
   updateContact,
-} = require("../../models/contacts");
+} = require("../../controllers/contacts");
 
+const { checkContact, checkContactId } = require("../../middlewares/contacts");
 
-router.route("/")
-    .get(listContacts)
-    .post(addContact);
+router.route("/").get(listContacts).post(checkContact, addContact);
 
 router
   .route("/:id")
-  .get(getContactById)
-  .put(updateContact)
+  .get(checkContactId, getContactById)
+  .put(checkContactId, updateContact)
   .delete(removeContact);
+
+router.route("/:id/favorite").patch(favoriteContact);
 
 module.exports = router;
