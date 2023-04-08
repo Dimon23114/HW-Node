@@ -9,21 +9,19 @@ const {
    * Check new contact
    */
   const checkContact = catchAsync(async (req, res, next) => {
-    const { error, value } = joiSchema.validate(req.body);
+    const { error } = joiSchema.validate(req.body);
   
     if (error) {
       return next(new AppError(400, error.details[0].message));
     }
   
-    const { email } = value;
+    const { email } = req.body;
   
     const contactExists = await Contact.exists({ email });
   
     if (contactExists) {
       return next(new AppError(409, "Contact with this email already exists"));
     }
-  
-    req.body = value;
   
     next();
   });
@@ -40,5 +38,20 @@ const {
   
     next();
   });
+
+  /**
+ * Check contact update
+ */
+const checkContactUpdate = catchAsync(async (req, res, next) => {
+  const { error, value } = validators.updateContactValidator(req.body);
+
+  if (error) {
+    return next(new AppError(400, error.details[0].message));
+  }
+
+  req.body = value;
+
+  next();
+});
   
-  module.exports = { checkContact, checkContactId };
+  module.exports = { checkContact, checkContactId, checkContactUpdate };

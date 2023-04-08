@@ -1,13 +1,25 @@
-const { catchAsync, AppError } = require("../utils");
+const { catchAsync } = require("../utils");
 const Contact = require("../models/contactModel");
 
 /**
  * Get contacts list
  */
-const listContacts = catchAsync(async (req, res, next) => {
-  const contacts = await Contact.find();
+const getContacts = catchAsync(async (req, res) => {
+  const { page = 1, limit = 20, favorite } = req.query;
+  const { _id } = req.user;
+
+  const skip = (page - 1) * limit;
+/**
+ * pagination
+ */
+  const contacts = await Contact.find(
+    favorite ? { owner: _id, favorite } : { owner: _id },
+    "",
+    { skip, limit: +limit }
+  ).populate("owner", "id email subscription");
 
   res.status(200).json({
+    total: contacts.length,
     contacts,
   });
 });
@@ -15,7 +27,7 @@ const listContacts = catchAsync(async (req, res, next) => {
 /**
  * Get contact by id
  */
-const getContactById = catchAsync(async (req, res, next) => {
+const getContact = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   const contact = await Contact.findById(id);
@@ -30,12 +42,14 @@ const getContactById = catchAsync(async (req, res, next) => {
  */
 const addContact = catchAsync(async (req, res, next) => {
   const { name, email, phone, favorite } = req.body;
+  const { _id } = req.user;
 
   const newContact = await Contact.create({
     name,
     email,
     phone,
     favorite,
+    owner: _id,
   });
 
   res.status(201).json({
@@ -50,7 +64,7 @@ const updateContact = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { name, email, phone, favorite } = req.body;
 
-  const updateContactById = await Contact.findByIdAndUpdate(
+  const updateContact = await Contact.findByIdAndUpdate(
     id,
     {
       name,
@@ -62,7 +76,7 @@ const updateContact = catchAsync(async (req, res, next) => {
   );
 
   res.status(200).json({
-    updateContactById,
+    updateContact,
   });
 });
 
@@ -73,14 +87,14 @@ const favoriteContact = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { favorite } = req.body;
 
-  const updateContactById = await Contact.findByIdAndUpdate(
+  const updateContact = await Contact.findByIdAndUpdate(
     id,
     { favorite },
     { new: true }
   );
 
   res.status(200).json({
-    updateContactById,
+    updateContact,
   });
 });
 
@@ -96,10 +110,10 @@ const removeContact = catchAsync(async (req, res, next) => {
 });
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
+  getContacts,
+  getContact,
   addContact,
   updateContact,
   favoriteContact,
+  removeContact,
 };
