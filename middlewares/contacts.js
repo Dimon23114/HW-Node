@@ -9,13 +9,13 @@ const {
    * Check new contact
    */
   const checkContact = catchAsync(async (req, res, next) => {
-    const { error, value } = joiSchema.validate(req.body);
+    const { error } = joiSchema.validate(req.body);
   
     if (error) {
       return next(new AppError(400, error.details[0].message));
     }
   
-    const { email } = value;
+    const { email } = req.body;
   
     const contactExists = await Contact.exists({ email });
   
@@ -23,7 +23,6 @@ const {
       return next(new AppError(409, "Contact with this email already exists"));
     }
   
-    req.body = value;
   
     next();
   });
