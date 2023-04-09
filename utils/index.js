@@ -3,6 +3,8 @@ const catchAsync = require("./catchAsync");
 const notFound = require("./notFoundError");
 const serverError = require("./globalError");
 const joiSchema = require("./joiValidators");
+const enums = require('./enums');
+
 
 module.exports = {
   AppError,
@@ -10,4 +12,5 @@ module.exports = {
   notFound,
   serverError,
   joiSchema,
+  enums,
 };
