@@ -1,25 +1,39 @@
-const express = require('express')
-const logger = require('morgan')
-const cors = require('cors')
+const express = require('express');
+const logger = require('morgan');
+const cors = require('cors');
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
 
-const contactsRouter = require('./routes/api/contacts')
+const { notFound, serverError } = require("./utils");
 
-const app = express()
+dotenv.config({ path: "./.env" });
 
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short'
+const contactsRouter = require("./routes/contactsRoutes");
+const authRouter = require("./routes/authRoutes");
 
-app.use(logger(formatsLogger))
-app.use(cors())
-app.use(express.json())
+const app = express();
 
-app.use('/api/contacts', contactsRouter)
+const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
-app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' })
-})
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then((connection) => {
+    console.log("Database connection successful");
+  })
+  .catch((err) => {
+    console.log(err.message);
+    process.exit(1);
+  });
 
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message })
-})
+app.use(logger(formatsLogger));
+app.use(cors());
+app.use(express.json());
 
-module.exports = app
+app.use("/api/auth", authRouter);
+app.use("/api/contacts", contactsRouter);
+
+app.use(notFound);
+
+app.use(serverError);
+
+module.exports = app;
