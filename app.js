@@ -1,6 +1,6 @@
-const express = require('express');
-const logger = require('morgan');
-const cors = require('cors');
+const express = require("express");
+const logger = require("morgan");
+const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
@@ -8,8 +8,9 @@ const { notFound, serverError } = require("./utils");
 
 dotenv.config({ path: "./.env" });
 
-const contactsRouter = require("./routes/contactsRoutes");
 const authRouter = require("./routes/authRoutes");
+const userRouter = require("./routes/userRoutes");
+const contactsRouter = require("./routes/contactsRoutes");
 
 const app = express();
 
@@ -28,8 +29,10 @@ mongoose
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
-app.use("/api/auth", authRouter);
+app.use("/api/auth/user", authRouter);
+app.use("/api/user", userRouter);
 app.use("/api/contacts", contactsRouter);
 
 app.use(notFound);

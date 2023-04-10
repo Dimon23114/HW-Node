@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 
 const User = require("../models/userModel");
 const { catchAsync, enums, AppError } = require("../utils");
@@ -15,10 +16,14 @@ const signToken = (id) =>
  * Signup controller
  */
 const signup = catchAsync(async (req, res) => {
+  const avatarURL = gravatar.url(req.body.email);
+
   const newUserData = {
     ...req.body,
+    avatarURL,
     role: enums.USER_ROLES_ENUM.STARTER,
   };
+
   const newUser = await User.create(newUserData);
 
   newUser.password = undefined;
@@ -70,15 +75,4 @@ const logout = catchAsync(async (req, res, next) => {
   res.status(204).json("No Content");
 });
 
-/**
- * Current user controller
- */
-const getCurrentUser = catchAsync(async (req, res) => {
-  const { email, subscription } = req.user;
-
-  res.status(200).json({
-    user: { email, subscription },
-  });
-});
-
-module.exports = { signup, login, logout, getCurrentUser };
+module.exports = { signup, login, logout };
