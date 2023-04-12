@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs/promises");
 
 const User = require("../models/userModel");
-const { catchAsync } = require("../utils");
+const { catchAsync } = require("../utils/catchAsync");
 
 const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
@@ -16,6 +16,13 @@ const getCurrentUser = catchAsync(async (req, res) => {
     user: { name, email, subscription },
   });
 });
+
+/**
+ * Update user password
+ */
+const updatePassword = (req, res) => {
+  res.status(200).json({ user: req.user });
+};
 
 /**
  * Update user avatar controller
@@ -34,4 +41,4 @@ const updateAvatar = catchAsync(async (req, res) => {
   res.status(200).json({ avatarURL });
 });
 
-module.exports = { getCurrentUser, updateAvatar };
+module.exports = { getCurrentUser, updatePassword, updateAvatar };

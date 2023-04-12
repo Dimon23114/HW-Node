@@ -1,7 +1,8 @@
 const { Schema, model } = require("mongoose");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
-const { enums } = require("../utils");
+const enums = require("../constants/enums");
 
 const userSchema = new Schema(
   {
@@ -34,6 +35,16 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, "Verify token is required"],
+    },
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   { timestamps: true }
 );
@@ -52,6 +63,18 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.checkPassword = (candidate, hash) =>
   bcrypt.compare(candidate, hash);
 
+// Method to request password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
 const User = model("User", userSchema);
 
 module.exports = User;
